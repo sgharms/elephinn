@@ -1,8 +1,9 @@
 import sys
+from subprocess import check_output
 from mastodon import Mastodon
 
 VALID_SUBCOMMANDS=["register", "fetch_follows", "rss_feeds_for_follows",
-                   "find_local_toot"]
+                   "find_local_toot", "open_local_toot"]
 MY_MASTODON_APP_NAME="elephinn"
 MY_MASTODON_NODE_NAME="techhub.social"
 MY_MASTODON_CREDENTIALS_FILE=".elephinn_credentials.secret"
@@ -17,6 +18,8 @@ def process_subcommand(cmd):
         rss_feeds_for_follows()
     elif "find_local_toot" == cmd:
         find_local_toot()
+    elif "open_local_toot" == cmd:
+        open_local_toot()
     else:
         raise RuntimeError(f"Bug! Could not find behavior for {cmd}")
 
@@ -35,7 +38,7 @@ def _login(authenticated_func):
             usercred_file = f".{MY_MASTODON_APP_NAME}_usercred.secret"
             mastodon = Mastodon(client_id = MY_MASTODON_CREDENTIALS_FILE)
             mastodon.log_in(login, password, to_file = usercred_file)
-        authenticated_func(mastodon)
+        return authenticated_func(mastodon)
     return _decorated_login
 
 def follows_list(session):
@@ -70,6 +73,17 @@ def find_local_toot(session):
     localized_acct = result['account']['acct']
     retarget = f"https://{MY_MASTODON_NODE_NAME}/@{localized_acct}/{localized_id}"
     print(retarget)
+    return retarget
+
+@_login
+def open_local_toot(session):
+    """
+    This is a slight extension to find_local_toot, but here we actually shell
+    out to execute some program that processes the URL calculated by
+    find_local_toot. On OSX (my development platform), that's `open`.
+    """
+    url = find_local_toot()
+    check_output(["open", url])
 
 if __name__ == "__main__":
     subcommand = sys.argv[1]
