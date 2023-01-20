@@ -75,8 +75,7 @@ def find_local_toot(session):
     print(retarget)
     return retarget
 
-@_login
-def open_local_toot(session):
+def open_local_toot():
     """
     This is a slight extension to find_local_toot, but here we actually shell
     out to execute some program that processes the URL calculated by
