@@ -1,9 +1,11 @@
 import sys
+import pprint
 from subprocess import check_output
 from mastodon import Mastodon
+from bs4 import BeautifulSoup
 
 VALID_SUBCOMMANDS=["register", "fetch_follows", "rss_feeds_for_follows",
-                   "find_local_toot", "open_local_toot"]
+                   "find_local_toot", "open_local_toot", "fetch_mentions"]
 MY_MASTODON_APP_NAME="elephinn"
 MY_MASTODON_NODE_NAME="techhub.social"
 MY_MASTODON_CREDENTIALS_FILE=".elephinn_credentials.secret"
@@ -20,6 +22,8 @@ def process_subcommand(cmd):
         find_local_toot()
     elif "open_local_toot" == cmd:
         open_local_toot()
+    elif "fetch_mentions" == cmd:
+        fetch_local_mentions()
     else:
         raise RuntimeError(f"Bug! Could not find behavior for {cmd}")
 
@@ -44,6 +48,32 @@ def _login(authenticated_func):
 def follows_list(session):
     id = session.me()["id"]
     return session.account_following(id)
+
+@_login
+def fetch_local_mentions(session):
+    excluded_types = ["follow", "follow_request", "favourite", "reblog", "update", "poll"]
+    def extract_relevant(s):
+        return {
+            "id": s["id"],
+            "url": s["status"]["url"],
+            "date": s["status"]["created_at"],
+            "content": BeautifulSoup(s["status"]["content"], 'html.parser').text,
+            "acct": s["account"]["acct"]
+        }
+
+    max_id = None
+    threshold_counter = 0
+    threshold = int(sys.argv[2])
+    while (True):
+        mentions = session.notifications(exclude_types=excluded_types, max_id=max_id)
+        if (len(mentions) == 0 ):
+            break
+        results = [ extract_relevant(struc) for struc in mentions]
+        max_id = int(mentions[-1]["id"])
+        pprint.pprint(results)
+        threshold_counter += len(mentions)
+        if threshold_counter >= threshold:
+            break
 
 @_login
 def fetch_follows(session):
