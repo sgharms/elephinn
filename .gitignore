@@ -1,1 +1,4 @@
 *.secret
+bin
+lib
+pyvenv.cfg
