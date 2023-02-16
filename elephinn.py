@@ -24,7 +24,7 @@ def process_subcommand(cmd):
     elif "open_local_toot" == cmd:
         open_local_toot()
     elif "fetch_mentions" == cmd:
-        fetch_local_mentions()
+        fetch_mentions()
     else:
         raise RuntimeError(f"Bug! Could not find behavior for {cmd}")
 
@@ -51,7 +51,7 @@ def follows_list(session):
     return session.account_following(id)
 
 @_login
-def fetch_local_mentions(session):
+def fetch_mentions(session):
     excluded_types = ["follow", "follow_request", "favourite", "reblog", "update", "poll"]
     def extract_relevant(s):
         return {
