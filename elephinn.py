@@ -52,6 +52,15 @@ def follows_list(session):
 
 @_login
 def fetch_mentions(session):
+    """
+    ./elephinn.py fetch_mentions 20
+
+    Get mentions in sets of 15 until we cross 20 (so this will get 30 total).
+
+    Leaving off the final arg will do fetches of n=15 through your entire
+    @-mention history. This may be a jerky thing to do. Don't be a jerk.
+    
+    """
     excluded_types = ["follow", "follow_request", "favourite", "reblog", "update", "poll"]
     def extract_relevant(s):
         return {
