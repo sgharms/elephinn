@@ -3,6 +3,7 @@ import pprint
 from subprocess import check_output
 from mastodon import Mastodon
 from bs4 import BeautifulSoup
+from math import inf
 
 VALID_SUBCOMMANDS=["register", "fetch_follows", "rss_feeds_for_follows",
                    "find_local_toot", "open_local_toot", "fetch_mentions"]
@@ -61,9 +62,9 @@ def fetch_local_mentions(session):
             "acct": s["account"]["acct"]
         }
 
-    max_id = None
-    threshold_counter = 0
-    threshold = int(sys.argv[2])
+    max_id: int = None
+    threshold_counter: int = 0
+    threshold: int = int(sys.argv[2]) if len(sys.argv) >= 3 else inf
     while (True):
         mentions = session.notifications(exclude_types=excluded_types, max_id=max_id)
         if (len(mentions) == 0 ):
