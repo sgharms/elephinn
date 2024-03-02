@@ -6,7 +6,8 @@ from bs4 import BeautifulSoup
 from math import inf
 
 VALID_SUBCOMMANDS=["register", "fetch_follows", "rss_feeds_for_follows",
-                   "find_local_toot", "open_local_toot", "fetch_mentions"]
+                   "find_local_toot", "open_local_toot", "fetch_mentions",
+                   "help"]
 MY_MASTODON_APP_NAME="elephinn"
 MY_MASTODON_NODE_NAME="techhub.social"
 MY_MASTODON_CREDENTIALS_FILE=".elephinn_credentials.secret"
@@ -25,10 +26,25 @@ def process_subcommand(cmd):
         open_local_toot()
     elif "fetch_mentions" == cmd:
         fetch_mentions()
+    elif "help" == cmd:
+        help()
     else:
         raise RuntimeError(f"Bug! Could not find behavior for {cmd}")
 
+def help():
+    cmds = "\n".join(sorted(VALID_SUBCOMMANDS))
+
+    print("""
+Welcome to elephinn.py help
+
+Valid commands are:
+
+""" + cmds + "\n\n")
+
 def register():
+    """
+    Creates a local credentials file based on the credentials provided by ./.login.secret
+    """
     print(f"Saving credentials for caching in {MY_MASTODON_CREDENTIALS_FILE}")
     Mastodon.create_app(
         MY_MASTODON_APP_NAME,
@@ -37,6 +53,10 @@ def register():
     )
 
 def _login(authenticated_func):
+    """
+    All internal methods need a wrapper of login around their execution. This
+    is that wrapper. You should not call it directly
+    """
     def _decorated_login():
         with(open(MY_LOGIN_SECRETS_FILE)) as f:
             [login, password] = map(lambda t: t.rstrip(), f.readlines())
@@ -46,7 +66,10 @@ def _login(authenticated_func):
         return authenticated_func(mastodon)
     return _decorated_login
 
-def follows_list(session):
+def _follows_list(session):
+    """
+    Helper method
+    """
     id = session.me()["id"]
     return session.account_following(id)
 
@@ -87,13 +110,13 @@ def fetch_mentions(session):
 
 @_login
 def fetch_follows(session):
-    follows = follows_list(session)
+    follows = _follows_list(session)
     for follow in follows:
         print(follow["username"], follow["url"])
 
 @_login
 def rss_feeds_for_follows(session):
-    follows = sorted(follows_list(session), key = lambda a: a["url"])
+    follows = sorted(_follows_list(session), key = lambda a: a["url"])
     for follow in follows:
         print(follow["url"] + ".rss")
 
