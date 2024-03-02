@@ -125,8 +125,11 @@ def open_local_toot():
     check_output(["open", url])
 
 if __name__ == "__main__":
+    if (len(sys.argv) <= 1 ):
+        raise RuntimeError(f"No subcommand provided. Check for typos. Eligible options: {', '.join(VALID_SUBCOMMANDS)}")
+
     subcommand = sys.argv[1]
-    if subcommand.lower() in VALID_SUBCOMMANDS:
-        process_subcommand(subcommand)
-    else:
-        raise RuntimeError(f"No valid subcommand provided. Eligible options: {','.join(VALID_SUBCOMMANDS)}")
+    if not subcommand.lower() in VALID_SUBCOMMANDS:
+        raise RuntimeError(f"No recognized subcommand provided. Check for typos. Eligible options: {', '.join(VALID_SUBCOMMANDS)}")
+
+    process_subcommand(subcommand)
